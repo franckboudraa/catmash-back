@@ -1,13 +1,12 @@
 const express = require('express');
 const app = express();
-var client = require('redis').createClient(process.env.REDIS_URL);
+const Redis = require('ioredis');
+const redis = new Redis(process.env.REDIS_URL);
 
 app.get('/', (req, res) => {
-  client.set('string_key', 'string val', redis.print);
-  client.get('string_key', function(err, reply) {
-    // reply is null when the key is missing
-    console.log(reply);
-    res.json(reply);
+  redis.set('foo', 'bar');
+  redis.get('foo', function(err, result) {
+    res.send(result);
   });
 });
 
