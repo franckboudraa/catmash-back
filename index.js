@@ -1,6 +1,6 @@
-const express = require('express');
-const Redis = require('ioredis');
-const Elo = require('elo-js');
+const express = require("express");
+const Redis = require("ioredis");
+const Elo = require("elo-js");
 
 const app = express();
 app.use(express.json()); // handling post params
@@ -14,60 +14,60 @@ const fetchCatScore = async id => {
   }
   if (!data) {
     // if this cat doesn't exist yet in db, create one with a score of 1200
-    redis.set(`cat_${id}`, '1200');
+    redis.set(`cat_${id}`, "1200");
     return 1200;
   }
   return await data;
 };
 
-app.post('/new', async (req, res) => {
+app.post("/new", async (req, res) => {
   /*
   req.body.winner_id
   req.body.looser_id
   */
   const elo = new Elo();
-  console.log('winner:', req.body.winner_id);
-  console.log('looser:', req.body.looser_id);
+  console.log("winner:", req.body.winner_id);
+  console.log("looser:", req.body.looser_id);
 
-  score_before_battle_for_winner = await fetchCatScore(req.body.winner_id);
-  score_before_battle_for_looser = await fetchCatScore(req.body.looser_id);
+  scoreBeforeBattleForWinner = await fetchCatScore(req.body.winner_id);
+  scoreBeforeBattleForLooser = await fetchCatScore(req.body.looser_id);
 
-  score_before_battle_for_winner = Number(score_before_battle_for_winner);
-  score_before_battle_for_looser = Number(score_before_battle_for_looser);
+  scoreBeforeBattleForWinner = Number(scoreBeforeBattleForWinner);
+  scoreBeforeBattleForLooser = Number(scoreBeforeBattleForLooser);
 
-  console.log(score_before_battle_for_winner);
-  console.log(score_before_battle_for_looser);
+  console.log(scoreBeforeBattleForWinner);
+  console.log(scoreBeforeBattleForLooser);
 
-  const score_after_battle_for_winner = elo.ifWins(
-    score_before_battle_for_winner,
-    score_before_battle_for_looser
+  const scoreAfterBattleForWinner = elo.ifWins(
+    scoreBeforeBattleForWinner,
+    scoreBeforeBattleForLooser
   );
-  const score_after_battle_for_looser = elo.ifLoses(
-    score_before_battle_for_looser,
-    score_after_battle_for_winner
+  const scoreAfterBattleForLooser = elo.ifLoses(
+    scoreBeforeBattleForLooser,
+    scoreAfterBattleForWinner
   );
 
-  console.log(score_after_battle_for_winner);
-  console.log(score_after_battle_for_looser);
+  console.log(scoreAfterBattleForWinner);
+  console.log(scoreAfterBattleForLooser);
 
   res.json({
     cats: [
       {
         id: req.body.winner_id,
-        scoreBefore: score_before_battle_for_winner,
-        scoreAfter: score_after_battle_for_winner
+        scoreBefore: scoreBeforeBattleForWinner,
+        scoreAfter: scoreAfterBattleForWinner
       },
       {
         id: req.body.looser_id,
-        scoreBefore: score_before_battle_for_looser,
-        scoreAfter: score_after_battle_for_looser
+        scoreBefore: scoreBeforeBattleForLooser,
+        scoreAfter: scoreAfterBattleForLooser
       }
     ]
   });
 });
 
 app.use(function(req, res, next) {
-  res.status(404).send('Meeooowww!');
+  res.status(404).send("Meeooowww!");
 });
 
 app.listen(process.env.PORT || 3000);
