@@ -17,6 +17,16 @@ app.use(function(req, res, next) {
 });
 app.use(express.json()); // handling post params
 
+app.get('/scores', async (req, res, next) => {
+  const catsWithScores = await Promise.all(
+    cats.images.map(async cat => {
+      cat.score = await Scores.pullCatScore(cat.id);
+      return cat;
+    })
+  );
+  res.send(catsWithScores);
+});
+
 app.post('/new', async (req, res, next) => {
   const { winnerId, looserId } = req.body;
   let winnerBeforeScore, looserBeforeScore, winnerAfterScore, looserAfterScore;
