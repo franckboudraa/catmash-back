@@ -26,7 +26,7 @@ app.get('/scores', async (req, res, next) => {
     })
   );
   catsWithScores.sort(function(a, b) {
-    return a.score - b.score;
+    return b.score - a.score;
   });
   const catsSorted = catsWithScores.map(cat => {
     cat.pos = i;
