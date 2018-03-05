@@ -1,6 +1,6 @@
 # Cat Mash Server
 
-Cat Mash server code available here: https://github.com/franckboudraa/catmash-back
+Cat Mash client code available here: https://github.com/franckboudraa/catmash-front
 
 Front-End:
 
@@ -12,6 +12,7 @@ Front-End:
 Back-End:
 
 * NodeJS
+* Express
 * Redis
 * Hosted on Heroku
 
