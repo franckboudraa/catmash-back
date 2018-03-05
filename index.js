@@ -28,13 +28,13 @@ const pushCatScore = async (id, score) => {
 };
 
 app.post('/new', async (req, res, next) => {
-  const { winner_id, looser_id } = req.body;
+  const { winnerId, looserId } = req.body;
   let winnerBeforeScore, looserBeforeScore, winnerAfterScore, looserAfterScore;
   const elo = new Elo();
 
   try {
-    winnerBeforeScore = await pullCatScore(winner_id); // pull the initial winner score from redis store
-    looserBeforeScore = await pullCatScore(looser_id); // pull the initial looser score from redis store
+    winnerBeforeScore = await pullCatScore(winnerId); // pull the initial winner score from redis store
+    looserBeforeScore = await pullCatScore(looserId); // pull the initial looser score from redis store
   } catch (error) {
     next(error);
   }
@@ -43,8 +43,8 @@ app.post('/new', async (req, res, next) => {
   looserAfterScore = await elo.ifLoses(looserBeforeScore, winnerBeforeScore);
 
   try {
-    pushCatScore(winner_id, winnerAfterScore); // push the new winner score to redis store
-    pushCatScore(looser_id, looserAfterScore); // push the new looser score to redis store
+    pushCatScore(winnerId, winnerAfterScore); // push the new winner score to redis store
+    pushCatScore(looserId, looserAfterScore); // push the new looser score to redis store
   } catch (error) {
     next(error);
   }
@@ -52,12 +52,12 @@ app.post('/new', async (req, res, next) => {
   res.json({
     cats: [
       {
-        id: winner_id,
+        winnerId,
         winnerBeforeScore,
         winnerAfterScore
       },
       {
-        id: looser_id,
+        looserId,
         looserBeforeScore,
         looserAfterScore
       }
