@@ -3,6 +3,14 @@ const Redis = require('ioredis');
 const Elo = require('elo-js');
 
 const app = express();
+app.use(function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept'
+  );
+  next();
+});
 app.use(express.json()); // handling post params
 const redis = new Redis(process.env.REDIS_URL || 6379); // connection to redis db
 
