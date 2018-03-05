@@ -14,6 +14,8 @@ app.use(function(req, res, next) {
   next();
 });
 app.use(express.json()); // handling post params
+app.use(express.static('public')); // static files (used for cats.json)
+
 const redis = new Redis(process.env.REDIS_URL || 6379); // connection to redis db
 
 const pullCatScore = async id => {
