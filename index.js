@@ -1,73 +1,76 @@
-const express = require("express");
-const Redis = require("ioredis");
-const Elo = require("elo-js");
+const express = require('express');
+const Redis = require('ioredis');
+const Elo = require('elo-js');
 
 const app = express();
 app.use(express.json()); // handling post params
 const redis = new Redis(process.env.REDIS_URL || 6379); // connection to redis db
 
-const fetchCatScore = async id => {
+const pullCatScore = async id => {
   try {
     data = await redis.get(`cat_${id}`);
   } catch (error) {
-    res.send(503); // if Redis return an error
+    return error;
   }
   if (!data) {
-    // if this cat doesn't exist yet in db, create one with a score of 1200
-    redis.set(`cat_${id}`, "1200");
+    pushCatScore(id, 1200); // if this cat doesn't exist yet in db, create one with a score of 1200
     return 1200;
   }
-  return await data;
+  return await Number(data);
 };
 
-app.post("/new", async (req, res) => {
-  /*
-  req.body.winner_id
-  req.body.looser_id
-  */
+const pushCatScore = async (id, score) => {
+  try {
+    redis.set(`cat_${id}`, score);
+  } catch (error) {
+    return error;
+  }
+};
+
+app.post('/new', async (req, res, next) => {
+  const { winner_id, looser_id } = req.body;
+  let winnerBeforeScore, looserBeforeScore, winnerAfterScore, looserAfterScore;
   const elo = new Elo();
-  console.log("winner:", req.body.winner_id);
-  console.log("looser:", req.body.looser_id);
 
-  scoreBeforeBattleForWinner = await fetchCatScore(req.body.winner_id);
-  scoreBeforeBattleForLooser = await fetchCatScore(req.body.looser_id);
+  try {
+    winnerBeforeScore = await pullCatScore(winner_id); // pull the initial winner score from redis store
+    looserBeforeScore = await pullCatScore(looser_id); // pull the initial looser score from redis store
+  } catch (error) {
+    next(error);
+  }
 
-  scoreBeforeBattleForWinner = Number(scoreBeforeBattleForWinner);
-  scoreBeforeBattleForLooser = Number(scoreBeforeBattleForLooser);
+  winnerAfterScore = await elo.ifWins(winnerBeforeScore, looserBeforeScore);
+  looserAfterScore = await elo.ifLoses(looserBeforeScore, winnerBeforeScore);
 
-  console.log(scoreBeforeBattleForWinner);
-  console.log(scoreBeforeBattleForLooser);
-
-  const scoreAfterBattleForWinner = elo.ifWins(
-    scoreBeforeBattleForWinner,
-    scoreBeforeBattleForLooser
-  );
-  const scoreAfterBattleForLooser = elo.ifLoses(
-    scoreBeforeBattleForLooser,
-    scoreAfterBattleForWinner
-  );
-
-  console.log(scoreAfterBattleForWinner);
-  console.log(scoreAfterBattleForLooser);
+  try {
+    pushCatScore(winner_id, winnerAfterScore); // push the new winner score to redis store
+    pushCatScore(looser_id, looserAfterScore); // push the new looser score to redis store
+  } catch (error) {
+    next(error);
+  }
 
   res.json({
     cats: [
       {
-        id: req.body.winner_id,
-        scoreBefore: scoreBeforeBattleForWinner,
-        scoreAfter: scoreAfterBattleForWinner
+        id: winner_id,
+        winnerBeforeScore,
+        winnerAfterScore
       },
       {
-        id: req.body.looser_id,
-        scoreBefore: scoreBeforeBattleForLooser,
-        scoreAfter: scoreAfterBattleForLooser
+        id: looser_id,
+        looserBeforeScore,
+        looserAfterScore
       }
     ]
   });
 });
 
+app.use(function(err, req, res, next) {
+  res.status(500).send('Something broke!');
+});
+
 app.use(function(req, res, next) {
-  res.status(404).send("Meeooowww!");
+  res.status(404).send('Meooow! Cat not found!');
 });
 
 app.listen(process.env.PORT || 3000);
