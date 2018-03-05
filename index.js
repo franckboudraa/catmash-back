@@ -1,8 +1,10 @@
 const express = require('express');
+const helmet = require('helmet');
 const Redis = require('ioredis');
 const Elo = require('elo-js');
 
 const app = express();
+app.use(helmet());
 app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header(
@@ -77,8 +79,8 @@ app.use(function(err, req, res, next) {
   res.status(500).send('Something broke!');
 });
 
-app.use(function(req, res, next) {
+/*app.use(function(req, res, next) {
   res.status(404).send('Meooow! Cat not found!');
-});
+});*/
 
 app.listen(process.env.PORT || 3000);

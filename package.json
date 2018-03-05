@@ -13,6 +13,7 @@
   "dependencies": {
     "elo-js": "^1.0.1",
     "express": "^4.16.2",
+    "helmet": "^3.12.0",
     "ioredis": "^3.2.2",
     "nodemon": "^1.17.1"
   }
