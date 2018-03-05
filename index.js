@@ -18,13 +18,22 @@ app.use(function(req, res, next) {
 app.use(express.json()); // handling post params
 
 app.get('/scores', async (req, res, next) => {
+  let i = 1;
   const catsWithScores = await Promise.all(
     cats.images.map(async cat => {
       cat.score = await Scores.pullCatScore(cat.id);
       return cat;
     })
   );
-  res.send(catsWithScores);
+  catsWithScores.sort(function(a, b) {
+    return a.score - b.score;
+  });
+  const catsSorted = catsWithScores.map(cat => {
+    cat.pos = i;
+    i++;
+    return cat;
+  });
+  res.send(catsSorted);
 });
 
 app.post('/new', async (req, res, next) => {
